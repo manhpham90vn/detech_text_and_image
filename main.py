@@ -8,7 +8,7 @@ import json
 
 def json_serializable(obj):
     if isinstance(obj, np.int64):
-        return int(obj)  # Chuyển đổi np.int64 thành int
+        return int(obj)
     raise TypeError(f"Type {type(obj)} not serializable")
 
 def find_image_locations(large_gray, small_gray, threshold=0.85):
