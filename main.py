@@ -12,18 +12,30 @@ def find_image_locations(large_gray, small_gray, threshold=0.85):
     return locations, result
 
 
+def convert_to_number(text):
+    """Chuyển đổi chuỗi văn bản với đơn vị (K, M) thành số."""
+    if 'K' in text:
+        return float(text.replace('K', '').strip()) * 1000
+    elif 'M' in text:
+        return float(text.replace('M', '').strip()) * 1000000
+    else:
+        return float(text)
+
+
 def extract_text_from_roi(roi):
     roi_gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
     roi_denoised = cv2.fastNlMeansDenoising(roi_gray, None, 30, 7, 21)
 
     text = pytesseract.image_to_string(
         roi_denoised,
-        config='--psm 6 --oem 3 -c tessedit_char_whitelist=0123456789'
+        config='--psm 6 --oem 3 -c tessedit_char_whitelist=0123456789KM.'
     )
 
-    text = re.sub(r'[^\d]', '', text)
+    text = re.sub(r'[^0-9.KM]', '', text)
 
-    return text
+    if re.match(r'^\d+(\.\d+)?[KM]?$|^\d+(\.\d+)?$', text):
+        return int(convert_to_number(text))
+    return ''
 
 
 def non_max_suppression(boxes, overlapThresh=0.3):
