@@ -13,7 +13,6 @@ def find_image_locations(large_gray, small_gray, threshold=0.85):
 
 
 def convert_to_number(text):
-    """Chuyển đổi chuỗi văn bản với đơn vị (K, M) thành số."""
     if 'K' in text:
         return float(text.replace('K', '').strip()) * 1000
     elif 'M' in text:
