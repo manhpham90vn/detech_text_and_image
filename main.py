@@ -1,11 +1,16 @@
 import os
 import re
 import sys
-
 import cv2
 import numpy as np
 import pytesseract
+import json
 
+# Hàm để chuyển đổi các đối tượng numpy không thể serializable
+def json_serializable(obj):
+    if isinstance(obj, np.int64):
+        return int(obj)  # Chuyển đổi np.int64 thành int
+    raise TypeError(f"Type {type(obj)} not serializable")
 
 def find_image_locations(large_gray, small_gray, threshold=0.85):
     result = cv2.matchTemplate(large_gray, small_gray, cv2.TM_CCOEFF_NORMED)
@@ -62,10 +67,14 @@ def non_max_suppression(boxes, overlapThresh=0.3):
     return [boxes[i] for i in pick], [boxes[i][5] for i in pick]
 
 
+# Đường dẫn đến thư mục chứa tài sản và ảnh
 assets_folder = "assets"
 imgs_folder = "imgs"
 assets_images = [f for f in os.listdir(assets_folder) if f.endswith(('.png', '.jpg', '.jpeg'))]
 imgs_images = [f for f in os.listdir(imgs_folder) if f.endswith(('.png', '.jpg', '.jpeg'))]
+
+# Tạo một danh sách chứa kết quả trả về
+result_data = []
 
 try:
     for img in imgs_images:
@@ -90,6 +99,11 @@ try:
 
         print(f"Number of objects found in {img}: {len(boxes)}")
 
+        image_result = {
+            "img_name": img,
+            "objects": []
+        }
+
         for idx, box in enumerate(boxes):
             x_start, y_start, x_end, y_end = box[:4]
             asset_name = asset_names[idx]
@@ -97,12 +111,22 @@ try:
 
             text = extract_text_from_roi(roi)
             print(f"Text in the expanded region below object from asset '{asset_name}' in image '{img}': {text}")
+
+            # Thêm thông tin đối tượng vào kết quả
+            image_result["objects"].append({
+                "bounding_box": [x_start, y_start, x_end, y_end],
+                "asset_name": asset_name,
+                "extracted_text": text
+            })
+
             cv2.rectangle(large_image, (x_start, y_start), (x_end, y_end), (255, 0, 0), 2)
 
-        cv2.imshow(f'Result for {img}', large_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        result_data.append(image_result)
 
 except KeyboardInterrupt:
-    cv2.destroyAllWindows()
     sys.exit(0)
+
+# Lưu kết quả dưới dạng JSON
+with open('result.json', 'w') as json_file:
+    json.dump(result_data, json_file, indent=4, default=json_serializable)
+    print("Results saved to 'result.json'")
