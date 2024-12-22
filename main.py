@@ -6,7 +6,6 @@ import numpy as np
 import pytesseract
 import json
 
-# Hàm để chuyển đổi các đối tượng numpy không thể serializable
 def json_serializable(obj):
     if isinstance(obj, np.int64):
         return int(obj)  # Chuyển đổi np.int64 thành int
@@ -67,13 +66,10 @@ def non_max_suppression(boxes, overlapThresh=0.3):
     return [boxes[i] for i in pick], [boxes[i][5] for i in pick]
 
 
-# Đường dẫn đến thư mục chứa tài sản và ảnh
 assets_folder = "assets"
 imgs_folder = "imgs"
 assets_images = [f for f in os.listdir(assets_folder) if f.endswith(('.png', '.jpg', '.jpeg'))]
 imgs_images = [f for f in os.listdir(imgs_folder) if f.endswith(('.png', '.jpg', '.jpeg'))]
-
-# Tạo một danh sách chứa kết quả trả về
 result_data = []
 
 try:
@@ -112,7 +108,6 @@ try:
             text = extract_text_from_roi(roi)
             print(f"Text in the expanded region below object from asset '{asset_name}' in image '{img}': {text}")
 
-            # Thêm thông tin đối tượng vào kết quả
             image_result["objects"].append({
                 "bounding_box": [x_start, y_start, x_end, y_end],
                 "asset_name": asset_name,
@@ -126,7 +121,6 @@ try:
 except KeyboardInterrupt:
     sys.exit(0)
 
-# Lưu kết quả dưới dạng JSON
 with open('result.json', 'w') as json_file:
     json.dump(result_data, json_file, indent=4, default=json_serializable)
     print("Results saved to 'result.json'")
