@@ -6,10 +6,12 @@ import numpy as np
 import pytesseract
 import json
 
+
 def json_serializable(obj):
     if isinstance(obj, np.int64):
         return int(obj)
     raise TypeError(f"Type {type(obj)} not serializable")
+
 
 def find_image_locations(large_gray, small_gray, threshold=0.85):
     result = cv2.matchTemplate(large_gray, small_gray, cv2.TM_CCOEFF_NORMED)
@@ -77,8 +79,8 @@ try:
         large_image = cv2.imread(os.path.join(imgs_folder, img))
         large_gray = cv2.cvtColor(large_image, cv2.COLOR_BGR2GRAY)
 
+        # Detect text by image
         boxes = []
-
         for asset in assets_images:
             small_image = cv2.imread(os.path.join(assets_folder, asset))
             small_gray = cv2.cvtColor(small_image, cv2.COLOR_BGR2GRAY)
@@ -114,9 +116,50 @@ try:
                 "extracted_text": text
             })
 
-            cv2.rectangle(large_image, (x_start, y_start), (x_end, y_end), (255, 0, 0), 2)
+        cv2.rectangle(large_image, (x_start, y_start), (x_end, y_end), (255, 0, 0), 2)
 
         result_data.append(image_result)
+
+        # Detect text by text
+        print(img)
+        target_text = ["Accounts reached", "Accounts engaged", "Likes", "Replies", "Shares", "Sticker taps"]
+        data = pytesseract.image_to_data(large_gray, output_type=pytesseract.Output.DICT,  config='--psm 6')
+        n_boxes = len(data['text'])
+
+        for i in range(n_boxes):
+            if data['text'][i].strip():
+                data['text'][i] = re.sub(r'[^a-zA-Z0-9,]', '', data['text'][i])
+
+        for target in target_text:
+            target_words = target.lower().split()
+            target_len = len(target_words)
+
+            for i in range(n_boxes - target_len + 1):
+                text_1 = data['text'][i].lower()
+
+                found = True
+                for j in range(target_len):
+
+                    if target_words[j] not in data['text'][i + j].lower():
+                        found = False
+                        break
+
+                if found:
+                    x_start = data['left'][i]
+                    y_start = data['top'][i]
+                    row_texts = []
+
+                    for j in range(n_boxes):
+                        if data['text'][j].strip() == "":
+                            continue
+
+                        if abs(data['top'][j] - y_start) < 10:
+                            row_texts.append(data['text'][j])
+
+                    if len(row_texts) > 0:
+                        print("Text in the same row:", " | ".join(row_texts))
+
+        print("--------------")
 
 except KeyboardInterrupt:
     sys.exit(0)
