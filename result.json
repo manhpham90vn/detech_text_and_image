@@ -3,44 +3,31 @@
         "img_name": "ig_3.jpeg",
         "objects": [
             {
-                "bounding_box": [
-                    481,
-                    448,
-                    558,
-                    481
-                ],
-                "asset_name": "bookmark.jpeg",
-                "extracted_text": 19
+                "save": 19
             },
             {
-                "bounding_box": [
-                    198,
-                    449,
-                    269,
-                    482
-                ],
-                "asset_name": "comment.jpeg",
-                "extracted_text": 4
+                "comment": 4
             },
             {
-                "bounding_box": [
-                    52,
-                    444,
-                    111,
-                    477
-                ],
-                "asset_name": "heart.png",
-                "extracted_text": 278
+                "like": 278
             },
             {
-                "bounding_box": [
-                    343,
-                    445,
-                    408,
-                    478
-                ],
-                "asset_name": "share.jpeg",
-                "extracted_text": 3
+                "share": 3
+            },
+            {
+                "engaged": 292
+            },
+            {
+                "engaged": 292
+            },
+            {
+                "reply": 292
+            },
+            {
+                "reply": 292
+            },
+            {
+                "sticker": 292
             }
         ]
     },
@@ -48,59 +35,40 @@
         "img_name": "ig_2.jpg",
         "objects": [
             {
-                "bounding_box": [
-                    37,
-                    309,
-                    94,
-                    342
-                ],
-                "asset_name": "play.jpeg",
-                "extracted_text": 5300
+                "views": 5300
             },
             {
-                "bounding_box": [
-                    393,
-                    307,
-                    458,
-                    340
-                ],
-                "asset_name": "share.jpeg",
-                "extracted_text": 0
+                "share": 0
             },
             {
-                "bounding_box": [
-                    497,
-                    310,
-                    574,
-                    343
-                ],
-                "asset_name": "bookmark.jpeg",
-                "extracted_text": 1
+                "save": 1
             },
             {
-                "bounding_box": [
-                    168,
-                    306,
-                    227,
-                    339
-                ],
-                "asset_name": "heart.png",
-                "extracted_text": 165
+                "like": 165
             },
             {
-                "bounding_box": [
-                    280,
-                    311,
-                    351,
-                    344
-                ],
-                "asset_name": "comment.jpeg",
-                "extracted_text": 3
+                "comment": 3
             }
         ]
     },
     {
         "img_name": "ig_1.jpg",
-        "objects": []
+        "objects": [
+            {
+                "engaged": 65
+            },
+            {
+                "engaged": 63
+            },
+            {
+                "reply": 4
+            },
+            {
+                "reply": 0
+            },
+            {
+                "sticker": 12
+            }
+        ]
     }
 ]

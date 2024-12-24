@@ -68,6 +68,10 @@ def non_max_suppression(boxes, overlapThresh=0.3):
     return [boxes[i] for i in pick], [boxes[i][5] for i in pick]
 
 
+def extract_number(text):
+    match = re.search(r'\d+', text)
+    return int(match.group()) if match else None
+
 assets_folder = "assets"
 imgs_folder = "imgs"
 assets_images = [f for f in os.listdir(assets_folder) if f.endswith(('.png', '.jpg', '.jpeg'))]
@@ -95,8 +99,6 @@ try:
 
         boxes, asset_names = non_max_suppression(boxes, overlapThresh=0.5)
 
-        print(f"Number of objects found in {img}: {len(boxes)}")
-
         image_result = {
             "img_name": img,
             "objects": []
@@ -108,12 +110,20 @@ try:
             roi = large_image[y_start:y_end, x_start:x_end]
 
             text = extract_text_from_roi(roi)
-            print(f"Text in the expanded region below object from asset '{asset_name}' in image '{img}': {text}")
+
+            if asset_name == "play.jpeg":
+                key = "views"
+            elif asset_name == "heart.png":
+                key = "like"
+            elif asset_name == "comment.jpeg":
+                key = "comment"
+            elif asset_name == "share.jpeg":
+                key = "share"
+            elif asset_name == "bookmark.jpeg":
+                key = "save"
 
             image_result["objects"].append({
-                "bounding_box": [x_start, y_start, x_end, y_end],
-                "asset_name": asset_name,
-                "extracted_text": text
+                key: text
             })
 
         cv2.rectangle(large_image, (x_start, y_start), (x_end, y_end), (255, 0, 0), 2)
@@ -121,7 +131,6 @@ try:
         result_data.append(image_result)
 
         # Detect text by text
-        print(img)
         target_text = ["Accounts reached", "Accounts engaged", "Likes", "Replies", "Shares", "Sticker taps"]
         data = pytesseract.image_to_data(large_gray, output_type=pytesseract.Output.DICT,  config='--psm 6')
         n_boxes = len(data['text'])
@@ -156,10 +165,24 @@ try:
                         if abs(data['top'][j] - y_start) < 10:
                             row_texts.append(data['text'][j])
 
-                    if len(row_texts) > 0:
-                        print("Text in the same row:", " | ".join(row_texts))
+                    final = " ".join(row_texts)
+                    value = extract_number(final)
 
-        print("--------------")
+            if value is not None:
+                if target == "Accounts reached":
+                    key2 = "reach"
+                elif target == "Accounts engaged":
+                    key2 = "engaged"
+                elif target == "Replies":
+                    key2 = "reply"
+                elif target == "Sticker taps":
+                    key2 = "sticker"
+
+                image_result["objects"].append({
+                    key2: value
+                })
+
+
 
 except KeyboardInterrupt:
     sys.exit(0)
