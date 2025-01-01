@@ -22,13 +22,21 @@ class DataExtractorType(Enum):
 class DataExtractor:
     def __init__(self, file_path: str, type: DataExtractorType):
         self.file_path = file_path
+        self.type = type
         # Key mapping for assets (images)
         self.ASSET_KEY_MAP_INSTAGRAM = {
-            "play.jpeg": "views",
-            "heart.png": "like",
-            "comment.jpeg": "comment",
-            "share.jpeg": "share",
-            "bookmark.jpeg": "save"
+            "instagram_play.jpeg": "views",
+            "instagram_heart.png": "like",
+            "instagram_comment.jpeg": "comment",
+            "instagram_share.jpeg": "share",
+            "instagram_bookmark.jpeg": "save"
+        }
+        self.ASSET_KEY_MAP_TIKTOK = {
+            "tik_heart.jpeg": "heart",
+            "tik_comment.jpeg": "comment",
+            "tik_share.jpeg": "share",
+            "tik_play.jpeg": "play",
+            "tik_save.jpeg": "save"
         }
         # Key mapping for target texts
         self.TEXT_KEY_MAP_INSTAGRAM = {
@@ -106,13 +114,23 @@ class DataExtractor:
     def process_locations(self, locations: Tuple[np.ndarray, np.ndarray], result: np.ndarray, small_image: np.ndarray, asset: str) -> List[List[int]]:
         """Process locations to create bounding boxes."""
         boxes = []
-        for pt in zip(*locations[::-1]):
-            x_start, y_start = pt[0] - 15, pt[1] + small_image.shape[0] + 2
-            x_end, y_end = pt[0] + small_image.shape[1] + \
-                15, pt[1] + small_image.shape[0] + 35
-            boxes.append([x_start, y_start, x_end, y_end,
-                          result[pt[1], pt[0]], asset])
-        return boxes
+        if self.type == DataExtractorType.instagram:
+            for pt in zip(*locations[::-1]):
+                x_start, y_start = pt[0] - 15, pt[1] + small_image.shape[0] + 2
+                x_end, y_end = pt[0] + small_image.shape[1] + \
+                    15, pt[1] + small_image.shape[0] + 35
+                boxes.append([x_start, y_start, x_end, y_end,
+                              result[pt[1], pt[0]], asset])
+            return boxes
+        elif self.type == DataExtractorType.tiktok:
+            for pt in zip(*locations[::-1]):
+                x_start, y_start = pt[0] - 15, pt[1] + \
+                    small_image.shape[0] + 10
+                x_end, y_end = pt[0] + small_image.shape[1] + \
+                    15, pt[1] + small_image.shape[0] + 40
+                boxes.append([x_start, y_start, x_end, y_end,
+                              result[pt[1], pt[0]], asset])
+            return boxes
 
     def process_detected_boxes(self, large_image: np.ndarray, boxes: List[List[int]], asset_names: List[str]) -> Dict[str, Any]:
         """Process detected boxes to extract text and draw rectangles."""
@@ -128,14 +146,19 @@ class DataExtractor:
             image_result["objects"].append({key: text})
             cv2.rectangle(large_image, (x_start, y_start),
                           (x_end, y_end), (255, 0, 0), 2)
-
+            cv2.imshow('Detected Text', large_image)
+            cv2.waitKey(0)
         return image_result
 
     def detect_text_by_image(self, large_image: np.ndarray, large_gray: np.ndarray) -> Dict[str, Any]:
         """Detect text based on template images."""
         assets_folder = "assets"
-        assets_images = [f for f in os.listdir(
-            assets_folder) if f.endswith(('.png', '.jpg', '.jpeg'))]
+        if self.type == DataExtractorType.instagram:
+            assets_images = [f for f in os.listdir(
+                assets_folder) if f.endswith(('.png', '.jpg', '.jpeg')) and f.startswith('instagram')]
+        elif self.type == DataExtractorType.tiktok:
+            assets_images = [f for f in os.listdir(
+                assets_folder) if f.endswith(('.png', '.jpg', '.jpeg')) and f.startswith('tik')]
         boxes = []
 
         for asset in assets_images:

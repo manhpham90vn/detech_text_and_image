@@ -1,23 +1,20 @@
 {
-    "img_name": "ig_2.jpg",
+    "img_name": "tik_2.jpg",
     "objects": [
         {
-            "views": "5300"
+            "tik_play.jpg": "650"
         },
         {
-            "share": "0"
+            "tik_heart.jpeg": "47"
         },
         {
-            "save": "1"
+            "tik_save.jpeg": "0"
         },
         {
-            "like": "165"
+            "tik_share.jpeg": "0"
         },
         {
-            "comment": "3"
-        },
-        {
-            "reach": 1
+            "tik_comment.jpeg": "2"
         }
     ]
 }
