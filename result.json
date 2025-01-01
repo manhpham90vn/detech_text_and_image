@@ -1,74 +1,20 @@
-[
-    {
-        "img_name": "ig_3.jpeg",
-        "objects": [
-            {
-                "save": 19
-            },
-            {
-                "comment": 4
-            },
-            {
-                "like": 278
-            },
-            {
-                "share": 3
-            },
-            {
-                "engaged": 292
-            },
-            {
-                "engaged": 292
-            },
-            {
-                "reply": 292
-            },
-            {
-                "reply": 292
-            },
-            {
-                "sticker": 292
-            }
-        ]
-    },
-    {
-        "img_name": "ig_2.jpg",
-        "objects": [
-            {
-                "views": 5300
-            },
-            {
-                "share": 0
-            },
-            {
-                "save": 1
-            },
-            {
-                "like": 165
-            },
-            {
-                "comment": 3
-            }
-        ]
-    },
-    {
-        "img_name": "ig_1.jpg",
-        "objects": [
-            {
-                "engaged": 65
-            },
-            {
-                "engaged": 63
-            },
-            {
-                "reply": 4
-            },
-            {
-                "reply": 0
-            },
-            {
-                "sticker": 12
-            }
-        ]
-    }
-]
+{
+    "img_name": "tik_2.jpg",
+    "objects": [
+        {
+            "tik_play.jpg": "650"
+        },
+        {
+            "tik_heart.jpeg": "47"
+        },
+        {
+            "tik_save.jpeg": "0"
+        },
+        {
+            "tik_share.jpeg": "0"
+        },
+        {
+            "tik_comment.jpeg": "2"
+        }
+    ]
+}
