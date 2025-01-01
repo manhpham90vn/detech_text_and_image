@@ -1,22 +1,23 @@
-[
-    {
-        "img_name": "imgs/ig_2.jpg",
-        "objects": [
-            {
-                "views": 5300
-            },
-            {
-                "share": ""
-            },
-            {
-                "save": 1
-            },
-            {
-                "like": 165
-            },
-            {
-                "comment": 3
-            }
-        ]
-    }
-]
+{
+    "img_name": "ig_2.jpg",
+    "objects": [
+        {
+            "views": "5300"
+        },
+        {
+            "share": "0"
+        },
+        {
+            "save": "1"
+        },
+        {
+            "like": "165"
+        },
+        {
+            "comment": "3"
+        },
+        {
+            "reach": 1
+        }
+    ]
+}
