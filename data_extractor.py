@@ -146,8 +146,8 @@ class DataExtractor:
             image_result["objects"].append({key: text})
             cv2.rectangle(large_image, (x_start, y_start),
                           (x_end, y_end), (255, 0, 0), 2)
-            cv2.imshow('Detected Text', large_image)
-            cv2.waitKey(0)
+            # cv2.imshow('Detected Text', large_image)
+            # cv2.waitKey(0)
         return image_result
 
     def detect_text_by_image(self, large_image: np.ndarray, large_gray: np.ndarray) -> Dict[str, Any]:
