@@ -45,6 +45,13 @@ class DataExtractor:
             "Replies": "reply",
             "Sticker taps": "sticker"
         }
+        self.TEXT_KEY_MAP_XHS = {
+            "观看": "reach",
+            "点赞": "likes",
+            "收藏": "saves",
+            "评论": "comments",
+            "笔记分享": "shares"
+        }
 
     def json_serializable(self, obj: Any) -> Any:
         """Convert non-serializable objects to serializable ones."""
@@ -159,6 +166,9 @@ class DataExtractor:
         elif self.type == DataExtractorType.tiktok:
             assets_images = [f for f in os.listdir(
                 assets_folder) if f.endswith(('.png', '.jpg', '.jpeg')) and f.startswith('tik')]
+        else:
+            return {"img_name": os.path.basename(
+                self.file_path), "objects": []}
         boxes = []
 
         for asset in assets_images:
@@ -175,35 +185,66 @@ class DataExtractor:
         boxes, asset_names = self.non_max_suppression(boxes, overlapThresh=0.5)
         return self.process_detected_boxes(large_image, boxes, asset_names)
 
-    def detect_text_by_text(self, large_gray: np.ndarray) -> Dict[str, int]:
+    def detect_text_by_text(self, large_image: np.ndarray, large_gray: np.ndarray) -> Dict[str, int]:
         """Detect text directly from the image using Tesseract."""
-        target_text = self.TEXT_KEY_MAP_INSTAGRAM.keys()
-        data = pytesseract.image_to_data(
-            large_gray, output_type=pytesseract.Output.DICT, config='--psm 6')
-        n_boxes = len(data['text'])
+        if self.type == DataExtractorType.instagram:
+            target_text = self.TEXT_KEY_MAP_INSTAGRAM.keys()
+            data = pytesseract.image_to_data(
+                large_gray, output_type=pytesseract.Output.DICT, config='--psm 6')
+            n_boxes = len(data['text'])
 
-        for i in range(n_boxes):
-            if data['text'][i].strip():
-                data['text'][i] = re.sub(r'[^a-zA-Z0-9,]', '', data['text'][i])
+            for i in range(n_boxes):
+                if data['text'][i].strip():
+                    data['text'][i] = re.sub(
+                        r'[^a-zA-Z0-9,]', '', data['text'][i])
 
-        text_results = {}
-        for target in target_text:
-            target_words = target.lower().split()
-            target_len = len(target_words)
+            text_results = {}
+            for target in target_text:
+                target_words = target.lower().split()
+                target_len = len(target_words)
 
-            for i in range(n_boxes - target_len + 1):
-                if all(target_words[j] in data['text'][i + j].lower() for j in range(target_len)):
-                    row_texts = [data['text'][j] for j in range(n_boxes) if data['text'][j].strip(
-                    ) and abs(data['top'][j] - data['top'][i]) < 10]
-                    final = " ".join(row_texts)
-                    value = int(re.search(r'\d+', final).group()
-                                ) if re.search(r'\d+', final) else None
-                    if value is not None:
-                        key = self.TEXT_KEY_MAP_INSTAGRAM.get(
-                            target, target.lower())
-                        text_results[key] = value
+                for i in range(n_boxes - target_len + 1):
+                    if all(target_words[j] in data['text'][i + j].lower() for j in range(target_len)):
+                        row_texts = [data['text'][j] for j in range(n_boxes) if data['text'][j].strip(
+                        ) and abs(data['top'][j] - data['top'][i]) < 10]
+                        final = " ".join(row_texts)
+                        value = int(re.search(r'\d+', final).group()
+                                    ) if re.search(r'\d+', final) else None
+                        if value is not None:
+                            key = self.TEXT_KEY_MAP_INSTAGRAM.get(
+                                target, target.lower())
+                            text_results[key] = value
 
-        return text_results
+            return text_results
+        elif self.type == DataExtractorType.xhs:
+            target_text = self.TEXT_KEY_MAP_XHS.keys()
+            data = pytesseract.image_to_data(
+                large_gray, output_type=pytesseract.Output.DICT, lang='chi_sim', config='--psm 6')
+
+            n_boxes = len(data['level'])
+
+            for i in range(n_boxes):
+                x_start = data['left'][i]
+                y_start = data['top'][i]
+                width = data['width'][i]
+                height = data['height'][i]
+                x_end = x_start + width
+                y_end = y_start + height
+                text = data['text'][i]
+                conf = int(data['conf'][i])
+
+                print(f"Text: {text}, Confidence: {conf}")
+                print(f"Box: {x_start}, {y_start}, {x_end}, {y_end}")
+
+                if conf > 85:
+                    cv2.rectangle(large_image, (x_start, y_start),
+                                  (x_end, y_end), (255, 0, 0), 2)
+                    cv2.imshow('Detected Text', large_image)
+                    cv2.waitKey(0)
+            text_results = {}
+            n_boxes = len(data['text'])
+
+            return text_results
 
     def save_results_to_json(self, results: Dict[str, Any], output_file: str = 'result.json'):
         """Save results to a JSON file."""
@@ -216,7 +257,7 @@ class DataExtractor:
         """Main function to extract data from the image."""
         large_image, large_gray = self.load_and_convert_image()
         image_result = self.detect_text_by_image(large_image, large_gray)
-        text_results = self.detect_text_by_text(large_gray)
+        text_results = self.detect_text_by_text(large_image, large_gray)
         image_result["objects"].extend(
             [{k: v} for k, v in text_results.items()])
         self.save_results_to_json(image_result)

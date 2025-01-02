@@ -9,5 +9,5 @@ pip install -r requirements.txt
 - install Tesseract OCR
 
 ```shell
-sudo apt install tesseract-ocr
+sudo apt install -y tesseract-ocr tesseract-ocr-chi-sim
 ```

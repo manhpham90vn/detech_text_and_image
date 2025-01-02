@@ -1,20 +1,4 @@
 {
-    "img_name": "tik_2.jpg",
-    "objects": [
-        {
-            "tik_play.jpg": "650"
-        },
-        {
-            "tik_heart.jpeg": "47"
-        },
-        {
-            "tik_save.jpeg": "0"
-        },
-        {
-            "tik_share.jpeg": "0"
-        },
-        {
-            "tik_comment.jpeg": "2"
-        }
-    ]
+    "img_name": "xhs_1.jpeg",
+    "objects": []
 }

@@ -3,5 +3,5 @@ from data_extractor import DataExtractorType
 
 if __name__ == '__main__':
     data_extractor = DataExtractor(
-        "imgs/tik_2.jpg", DataExtractorType.tiktok)
+        "imgs/xhs_1.jpeg", DataExtractorType.xhs)
     data_extractor.extract()
