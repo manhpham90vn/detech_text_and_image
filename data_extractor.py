@@ -114,7 +114,7 @@ class DataExtractor:
             w, h = np.maximum(0, xx2 - xx1 + 1), np.maximum(0, yy2 - yy1 + 1)
             overlap = (w * h) / area[idxs[:-1]]
             idxs = np.delete(idxs, np.concatenate(
-                ([len(idxs) - 1], np.where(overlap > overlapThresh)[0])))
+                            ([len(idxs) - 1], np.where(overlap > overlapThresh)[0])))
 
         return [boxes[i] for i in pick], [boxes[i][5] for i in pick]
 
@@ -142,7 +142,7 @@ class DataExtractor:
     def process_detected_boxes(self, large_image: np.ndarray, boxes: List[List[int]], asset_names: List[str]) -> Dict[str, Any]:
         """Process detected boxes to extract text and draw rectangles."""
         image_result = {"img_name": os.path.basename(
-            self.file_path), "objects": []}
+                        self.file_path), "objects": []}
 
         for idx, box in enumerate(boxes):
             x_start, y_start, x_end, y_end = box[:4]
@@ -221,29 +221,87 @@ class DataExtractor:
             data = pytesseract.image_to_data(
                 large_gray, output_type=pytesseract.Output.DICT, lang='chi_sim', config='--psm 6')
 
-            n_boxes = len(data['level'])
-
-            for i in range(n_boxes):
-                x_start = data['left'][i]
-                y_start = data['top'][i]
-                width = data['width'][i]
-                height = data['height'][i]
-                x_end = x_start + width
-                y_end = y_start + height
-                text = data['text'][i]
-                conf = int(data['conf'][i])
-
-                print(f"Text: {text}, Confidence: {conf}")
-                print(f"Box: {x_start}, {y_start}, {x_end}, {y_end}")
-
-                if conf > 85:
-                    cv2.rectangle(large_image, (x_start, y_start),
-                                  (x_end, y_end), (255, 0, 0), 2)
-                    cv2.imshow('Detected Text', large_image)
-                    cv2.waitKey(0)
             text_results = {}
-            n_boxes = len(data['text'])
+            n_boxes = len(data['level'])
+            boxes = []
 
+            for text in target_text:
+                found = False
+                target_words = text.split()
+                target_len = len(text)
+
+                for i in range(n_boxes):
+                    if data['text'][i] == text:
+                        x_start = data['left'][i]
+                        y_start = data['top'][i]
+                        x_end = data['left'][i] + data['width'][i]
+                        y_end = data['top'][i] + data['height'][i]
+                        key = self.TEXT_KEY_MAP_XHS[text]
+                        boxes.append([x_start, y_start, x_end, y_end, key])
+                        print(f"Found {text} at ({x_start}, {
+                              y_start}) to ({x_end}, {y_end})")
+                        found = True
+                        break
+
+                if not found:
+                    for i in range(n_boxes - 1):
+                        element1 = data['text'][i]
+                        element2 = data['text'][i + 1]
+                        combined_text = element1 + element2
+                        if combined_text == text:
+                            x_start = min(data['left'][i + j]
+                                          for j in range(2))
+                            y_start = min(data['top'][i + j] for j in range(2))
+                            x_end = max(
+                                data['left'][i + j] + data['width'][i + j] for j in range(2))
+                            y_end = max(
+                                data['top'][i + j] + data['height'][i + j] for j in range(2))
+                            key = self.TEXT_KEY_MAP_XHS[text]
+                            boxes.append([x_start, y_start, x_end, y_end, key])
+                            print(f"Found {text} in 2 consecutive elements at ({
+                                  x_start}, {y_start}) to ({x_end}, {y_end})")
+                            found = True
+                            break
+
+                if not found:
+                    for i in range(n_boxes - 2):
+                        element1 = data['text'][i]
+                        element2 = data['text'][i + 1]
+                        element3 = data['text'][i + 2]
+                        combined_text = element1 + element2 + element3
+                        if combined_text == text:
+                            x_start = min(data['left'][i + j]
+                                          for j in range(3))
+                            y_start = min(data['top'][i + j] for j in range(3))
+                            x_end = max(
+                                data['left'][i + j] + data['width'][i + j] for j in range(3))
+                            y_end = max(
+                                data['top'][i + j] + data['height'][i + j] for j in range(3))
+                            key = self.TEXT_KEY_MAP_XHS[text]
+                            boxes.append([x_start, y_start, x_end, y_end, key])
+                            print(f"Found {text} in 3 consecutive elements at ({
+                                  x_start}, {y_start}) to ({x_end}, {y_end})")
+                            found = True
+                            break
+
+            for box in boxes:
+                x_start, y_start, x_end, y_end, key = box
+                x_start_roi = x_start - 5
+                y_start_roi = y_start + 25
+                x_end_roi = x_end + 30
+                y_end_roi = y_end + 40
+                cv2.rectangle(large_image, (x_start_roi, y_start_roi),
+                              (x_end_roi, y_end_roi), (255, 0, 0), 2)
+                roi = large_image[y_start_roi:y_end_roi, x_start_roi:x_end_roi]
+                cv2.imshow('Detected Text', roi)
+                cv2.waitKey(0)
+                roi_gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+                text_new = pytesseract.image_to_string(
+                    roi_gray, lang='chi_sim', config='--psm 6')
+                print(f"Extracted text: {text_new}")
+                if re.match(r'^\d+(\.\d+)?[KM]?$|^\d+(\.\d+)?$', text_new):
+                    value = self.convert_to_number(text_new)
+                    text_results[key] = value
             return text_results
 
     def save_results_to_json(self, results: Dict[str, Any], output_file: str = 'result.json'):

@@ -1,4 +1,8 @@
 {
     "img_name": "xhs_1.jpeg",
-    "objects": []
+    "objects": [
+        {
+            "reach": 1499.0
+        }
+    ]
 }
